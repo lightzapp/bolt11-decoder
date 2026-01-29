@@ -1,32 +1,32 @@
 const {bech32, hex, utf8} = require('@scure/base')
 
 // defaults for encode; default timestamp is current time at call
-const DEFAULTNETWORK = {
-  // default network is bitcoin
+const FLOKICOIN_MAINNET = {
+  // default network is flokicoin
   bech32: 'fc',
   pubKeyHash: 0x23,
   scriptHash: 0x05,
   validWitnessVersions: [0]
 }
-const TESTNETWORK = {
+const FLOKICOIN_TESTNET = {
   bech32: 'tf',
   pubKeyHash: 0x6f,
   scriptHash: 0xc4,
   validWitnessVersions: [0]
 }
-const SIGNETNETWORK = {
+const FLOKICOIN_SIGNET = {
   bech32: 'tbs',
   pubKeyHash: 0x6f,
   scriptHash: 0xc4,
   validWitnessVersions: [0]
 }
-const REGTESTNETWORK = {
+const FLOKICOIN_REGTEST = {
   bech32: 'fcrt',
   pubKeyHash: 0x6f,
   scriptHash: 0xc4,
   validWitnessVersions: [0]
 }
-const SIMNETWORK = {
+const FLOKICOIN_SIMNET = {
   bech32: 'sf',
   pubKeyHash: 0x3f,
   scriptHash: 0x7b,
@@ -55,9 +55,9 @@ const DIVISORS = {
   p: BigInt(1e12)
 }
 
-const MAX_MILLISATS = BigInt('9223372036854775807000')
+const MAX_MILLILOKIS = BigInt('9223372036854775807000')
 
-const MILLISATS_PER_BTC = BigInt(1e11)
+const MILLILOKIS_PER_FLC = BigInt(1e11)
 
 const TAGCODES = {
   payment_hash: 1,
@@ -113,14 +113,14 @@ function routingInfoParser(words) {
   const routes = []
   let pubkey,
     shortChannelId,
-    feeBaseMSats,
+    feeBaseMlokis,
     feeProportionalMillionths,
     cltvExpiryDelta
   let routesBuffer = bech32.fromWordsUnsafe(words)
   while (routesBuffer.length > 0) {
     pubkey = hex.encode(routesBuffer.slice(0, 33)) // 33 bytes
     shortChannelId = hex.encode(routesBuffer.slice(33, 41)) // 8 bytes
-    feeBaseMSats = parseInt(hex.encode(routesBuffer.slice(41, 45)), 16) // 4 bytes
+    feeBaseMlokis = parseInt(hex.encode(routesBuffer.slice(41, 45)), 16) // 4 bytes
     feeProportionalMillionths = parseInt(
       hex.encode(routesBuffer.slice(45, 49)),
       16
@@ -132,7 +132,7 @@ function routingInfoParser(words) {
     routes.push({
       pubkey,
       short_channel_id: shortChannelId,
-      fee_base_msat: feeBaseMSats,
+      fee_base_msat: feeBaseMlokis,
       fee_proportional_millionths: feeProportionalMillionths,
       cltv_expiry_delta: cltvExpiryDelta
     })
@@ -184,7 +184,7 @@ function featureBitsParser(words) {
   return featureBits
 }
 
-function hrpToMillisat(hrpString, outputString) {
+function hrpToMilliloki(hrpString, outputString) {
   let divisor, value
   if (hrpString.slice(-1).match(/^[munp]$/)) {
     divisor = hrpString.slice(-1)
@@ -200,18 +200,18 @@ function hrpToMillisat(hrpString, outputString) {
 
   const valueBN = BigInt(value)
 
-  const millisatoshisBN = divisor
-    ? (valueBN * MILLISATS_PER_BTC) / DIVISORS[divisor]
-    : valueBN * MILLISATS_PER_BTC
+  const millilokisBN = divisor
+    ? (valueBN * MILLILOKIS_PER_FLC) / DIVISORS[divisor]
+    : valueBN * MILLILOKIS_PER_FLC
 
   if (
     (divisor === 'p' && !(valueBN % BigInt(10) === BigInt(0))) ||
-    millisatoshisBN > MAX_MILLISATS
+    millilokisBN > MAX_MILLILOKIS
   ) {
     throw new Error('Amount is outside of valid range')
   }
 
-  return outputString ? millisatoshisBN.toString() : millisatoshisBN
+  return outputString ? millilokisBN.toString() : millilokisBN
 }
 
 // decode will only have extra comments that aren't covered in encode comments.
@@ -255,20 +255,20 @@ function decode(paymentRequest, network) {
   let coinNetwork
   if (!network) {
     switch (bech32Prefix) {
-      case DEFAULTNETWORK.bech32:
-        coinNetwork = DEFAULTNETWORK
+      case FLOKICOIN_MAINNET.bech32:
+        coinNetwork = FLOKICOIN_MAINNET
         break
-      case TESTNETWORK.bech32:
-        coinNetwork = TESTNETWORK
+      case FLOKICOIN_TESTNET.bech32:
+        coinNetwork = FLOKICOIN_TESTNET
         break
-      case SIGNETNETWORK.bech32:
-        coinNetwork = SIGNETNETWORK
+      case FLOKICOIN_SIGNET.bech32:
+        coinNetwork = FLOKICOIN_SIGNET
         break
-      case REGTESTNETWORK.bech32:
-        coinNetwork = REGTESTNETWORK
+      case FLOKICOIN_REGTEST.bech32:
+        coinNetwork = FLOKICOIN_REGTEST
         break
-      case SIMNETWORK.bech32:
-        coinNetwork = SIMNETWORK
+      case FLOKICOIN_SIMNET.bech32:
+        coinNetwork = FLOKICOIN_SIMNET
         break
     }
   } else {
@@ -292,17 +292,17 @@ function decode(paymentRequest, network) {
 
   // amount section
   const value = prefixMatches[2]
-  let millisatoshis
+  let millilokis
   if (value) {
     const divisor = prefixMatches[3]
-    millisatoshis = hrpToMillisat(value + divisor, true)
+    millisatoshis = hrpToMilliloki(value + divisor, true)
     sections.push({
       name: 'amount',
       letters: prefixMatches[2] + prefixMatches[3],
-      value: millisatoshis
+      value: millilokis
     })
   } else {
-    millisatoshis = null
+    millilokis = null
   }
 
   // "1" separator
@@ -396,5 +396,5 @@ function decode(paymentRequest, network) {
 
 module.exports = {
   decode,
-  hrpToMillisat
+  hrpToMilliloki
 }

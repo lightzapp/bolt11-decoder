@@ -1,6 +1,6 @@
-<a href="https://nbd.wtf"><img align="right" height="196" src="https://user-images.githubusercontent.com/1653275/194609043-0add674b-dd40-41ed-986c-ab4a2e053092.png" /></a>
 
-# light-bolt11-decoder
+
+# @lightz/bolt11-decoder
 
 A lightweight and naïve library for decoding lightning network payment requests as defined in [BOLT #11](https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md).
 
@@ -15,15 +15,15 @@ The dependencies are minimal: no `Buffer`, only [`@scure/base`](https://github.c
 ## Installation
 
 ```
-yarn add light-bolt11-decoder
+yarn add @lightz/bolt11-decoder
 ```
 
-## Example Output from `require('light-bolt11-decoder').decode("lnbc...")`
+## Example Output from `require('@lightz/bolt11-decoder').decode("lnfc...")`
 
 ```js
 {
   paymentRequest:
-    'lnbc20u1p3y0x3hpp5743k2g0fsqqxj7n8qzuhns5gmkk4djeejk3wkp64ppevgekvc0jsdqcve5kzar2v9nr5gpqd4hkuetesp5ez2g297jduwc20t6lmqlsg3man0vf2jfd8ar9fh8fhn2g8yttfkqxqy9gcqcqzys9qrsgqrzjqtx3k77yrrav9hye7zar2rtqlfkytl094dsp0ms5majzth6gt7ca6uhdkxl983uywgqqqqlgqqqvx5qqjqrzjqd98kxkpyw0l9tyy8r8q57k7zpy9zjmh6sez752wj6gcumqnj3yxzhdsmg6qq56utgqqqqqqqqqqqeqqjq7jd56882gtxhrjm03c93aacyfy306m4fq0tskf83c0nmet8zc2lxyyg3saz8x6vwcp26xnrlagf9semau3qm2glysp7sv95693fphvsp54l567',
+    'lnfc20u1p3y0x3hpp5743k2g0fsqqxj7n8qzuhns5gmkk4djeejk3wkp64ppevgekvc0jsdqcve5kzar2v9nr5gpqd4hkuetesp5ez2g297jduwc20t6lmqlsg3man0vf2jfd8ar9fh8fhn2g8yttfkqxqy9gcqcqzys9qrsgqrzjqtx3k77yrrav9hye7zar2rtqlfkytl094dsp0ms5majzth6gt7ca6uhdkxl983uywgqqqqlgqqqvx5qqjqrzjqd98kxkpyw0l9tyy8r8q57k7zpy9zjmh6sez752wj6gcumqnj3yxzhdsmg6qq56utgqqqqqqqqqqqeqqjq7jd56882gtxhrjm03c93aacyfy306m4fq0tskf83c0nmet8zc2lxyyg3saz8x6vwcp26xnrlagf9semau3qm2glysp7sv95693fphvsp54l567',
   sections: [
     {
       name: 'lightning_network',
@@ -31,10 +31,10 @@ yarn add light-bolt11-decoder
     },
     {
       name: 'coin_network',
-      letters: 'bc',
+      letters: 'fc',
       value: {
-        bech32: 'bc',
-        pubKeyHash: 0,
+        bech32: 'fc',
+        pubKeyHash: 35,
         scriptHash: 5,
         validWitnessVersions: [0]
       }
@@ -168,7 +168,7 @@ yarn add light-bolt11-decoder
         pubkey:
           '034a7b1ac1239ff2ac8438ce0a7ade1048514b77d4322f514e96918e6c13944861',
         short_channel_id: '5db0da3400535c5a',
-        fee_base_msat: 0,
+        fee_base_mloki: 0,
         fee_proportional_millionths: 100,
         cltv_expiry_delta: 144
       }

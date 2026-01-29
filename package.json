@@ -1,7 +1,7 @@
 {
   "name": "@lightz/bolt11-decoder",
-  "version": "1.0.0",
-  "description": "decode lightning invoices without overhead (doesn't check signatures).",
+  "version": "1.0.1",
+  "description": "A lightweight and naïve library for decoding Flokicoin lightning network payment requests",
   "main": "bolt11.js",
   "types": "bolt11.d.ts",
   "repository": {
@@ -15,7 +15,10 @@
     "lightning",
     "network",
     "bolt11",
-    "bech32"
+    "bech32",
+    "lokichain",
+    "flokicoin",
+    "lightz"
   ],
   "author": "nysxen",
   "license": "MIT",
