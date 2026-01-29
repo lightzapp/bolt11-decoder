@@ -1,4 +1,4 @@
-declare module "light-bolt11-decoder" {
+declare module "@lightz/bolt11-decoder" {
   type NetworkSection = {
     name: 'coin_network';
     letters: string;
