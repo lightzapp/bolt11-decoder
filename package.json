@@ -1,6 +1,6 @@
 {
   "name": "@lightz/bolt11-decoder",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A lightweight and naïve library for decoding Flokicoin lightning network payment requests",
   "main": "bolt11.js",
   "types": "bolt11.d.ts",

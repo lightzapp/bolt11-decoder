@@ -295,7 +295,7 @@ function decode(paymentRequest, network) {
   let millilokis
   if (value) {
     const divisor = prefixMatches[3]
-    millisatoshis = hrpToMilliloki(value + divisor, true)
+    millilokis = hrpToMilliloki(value + divisor, true)
     sections.push({
       name: 'amount',
       letters: prefixMatches[2] + prefixMatches[3],
