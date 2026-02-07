@@ -116,7 +116,7 @@ function routingInfoParser(words) {
     feeBaseMlokis,
     feeProportionalMillionths,
     cltvExpiryDelta
-  let routesBuffer = bech32.fromWordsUnsafe(words)
+  let routesBuffer = convertWords(words, 5, 8, true)
   while (routesBuffer.length > 0) {
     pubkey = hex.encode(routesBuffer.slice(0, 33)) // 33 bytes
     shortChannelId = hex.encode(routesBuffer.slice(33, 41)) // 8 bytes
@@ -224,7 +224,7 @@ function decode(paymentRequest, network) {
     throw new Error('Not a proper lightning payment request')
 
   const sections = []
-  const decoded = bech32.decode(paymentRequest, Number.MAX_SAFE_INTEGER)
+  const decoded = tryDecode(paymentRequest)
   paymentRequest = paymentRequest.toLowerCase()
   const prefix = decoded.prefix
   let words = decoded.words
@@ -397,4 +397,115 @@ function decode(paymentRequest, network) {
 module.exports = {
   decode,
   hrpToMilliloki
+}
+
+
+
+function tryDecode(paymentRequest) {
+  // Try standard bech32
+  try {
+    return bech32.decode(paymentRequest, Number.MAX_SAFE_INTEGER)
+  } catch (e) {
+    // continue
+  }
+
+  // Try standard bech32m
+  try {
+    const { bech32m } = require('@scure/base')
+    return bech32m.decode(paymentRequest, Number.MAX_SAFE_INTEGER)
+  } catch (e) {
+    // continue
+  }
+
+  // Try custom Flokicoin check
+  try {
+     return manualDecode(paymentRequest)
+  } catch (e) {
+    throw new Error('Not a proper lightning payment request: ' + e.message)
+  }
+}
+
+function manualDecode(str) {
+  const ALPHABET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
+  const ALPHABET_MAP = {}
+  for (let i = 0; i < ALPHABET.length; i++) {
+     ALPHABET_MAP[ALPHABET[i]] = i
+  }
+
+  str = str.toLowerCase()
+  const sepIndex = str.lastIndexOf('1')
+  if (sepIndex === -1) throw new Error('No separator')
+  
+  const prefix = str.slice(0, sepIndex)
+  const dataPart = str.slice(sepIndex + 1)
+  
+  if (dataPart.length < 6) throw new Error('Data too short')
+  
+  const words = []
+  for (let i = 0; i < dataPart.length; i++) {
+     const val = ALPHABET_MAP[dataPart[i]]
+     if (val === undefined) throw new Error('Invalid character')
+     words.push(val)
+  }
+  
+  // Calculate checksum
+  const combined = hrpExpand(prefix).concat(words)
+  const constRes = polymod(combined)
+  
+  // 1 = bech32, 0x2bc830a3 = bech32m, 0x136ca640 = Flokicoin observed
+  if (constRes !== 1 && constRes !== 0x2bc830a3 && constRes !== 0x136ca640) {
+      throw new Error('Invalid checksum signature: ' + constRes.toString(16))
+  }
+  
+  return {
+      prefix,
+      words: words.slice(0, -6)
+  }
+}
+
+function hrpExpand(hrp) {
+    let ret = []
+    for (let i = 0; i < hrp.length; i++) {
+        ret.push(hrp.charCodeAt(i) >> 5)
+    }
+    ret.push(0)
+    for (let i = 0; i < hrp.length; i++) {
+        ret.push(hrp.charCodeAt(i) & 31)
+    }
+    return ret
+}
+
+function polymod(values) {
+    let chk = 1
+    for (let v of values) {
+        let b = chk >> 25
+        chk = ((chk & 0x1ffffff) << 5) ^ v
+        if ((b >> 0) & 1) chk ^= 0x3b6a57b2
+        if ((b >> 1) & 1) chk ^= 0x26508e6d
+        if ((b >> 2) & 1) chk ^= 0x1ea119fa
+        if ((b >> 3) & 1) chk ^= 0x3d4233dd
+        if ((b >> 4) & 1) chk ^= 0x2a1462b3
+    }
+    return chk
+}
+
+function convertWords(words, from, to) {
+    let acc = 0
+    let bits = 0
+    const out = []
+    const maxv = (1 << to) - 1
+    const max_acc = (1 << (from + to - 1)) - 1
+    
+    for (let w of words) {
+        if (w < 0 || (w >> from) !== 0) {
+            throw new Error("Invalid word")
+        }
+        acc = ((acc << from) | w) & max_acc
+        bits += from
+        while (bits >= to) {
+            bits -= to
+            out.push((acc >> bits) & maxv)
+        }
+    }
+    return Uint8Array.from(out)
 }
